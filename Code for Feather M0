@@ -1,0 +1,67 @@
+#include <OneWire.h>
+#include <DallasTemperature.h>
+#include "DHT.h"
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+// Data wire is connected to GPIO 2 (D2) pin
+#define ONE_WIRE_BUS 11
+#define DHTPIN 12     // Digital pin connected to the DHT sensor
+#define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
+#define OLED_RESET 4
+
+Adafruit_SSD1306 display(OLED_RESET);
+OneWire oneWire(ONE_WIRE_BUS);
+DallasTemperature sensors(&oneWire);
+DHT dht(DHTPIN, DHTTYPE);
+
+void setup() {
+  Serial.begin(9600);
+  sensors.begin();
+  dht.begin();
+  // Initialize the OLED display
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
+  display.clearDisplay();
+  // Set text size and color
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+
+}
+
+void loop() {
+  delay(2000);
+  sensors.requestTemperatures();
+  float temperatureC = sensors.getTempCByIndex(0);
+
+  // Reading temperature or humidity takes about 250 milliseconds!
+  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+  float h = dht.readHumidity();
+  // Read temperature as Celsius (the default)
+  float t = dht.readTemperature();
+
+  Serial.print(F("Humidity: "));
+  Serial.print(h);
+  Serial.print(F("%  Temp DHT: "));
+  Serial.print(t);
+  Serial.print(F("°C "));
+  Serial.print("Temp DS: ");
+  Serial.print(temperatureC);
+  Serial.println("°C");
+
+  // Clear the display
+  display.clearDisplay();
+
+  // Display measurements
+  display.setCursor(0, 0);
+  display.println("Humidity: " + String(h) + "%");
+  display.setCursor(0, 10);
+  display.println("Temp DHT: " + String(t) + " C");
+  display.setCursor(0, 20);
+  display.println("Temp DS: " + String(temperatureC)  + " C");
+
+  // Display the content on the OLED
+  display.display();
+  
+  
+}
