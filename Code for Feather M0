@@ -1,3 +1,28 @@
+/********** Description **********
+This script reads temperature and humidity data from a DHT22 sensor and a DallasTemperature sensor.
+The readings are then displayed on a 128x64 OLED display using the Adafruit SSD1306 library.
+
+ 
+
+Pin Connections:
+- DHT22 Sensor: Connect its data pin to pin 12 (D12) on the Arduino board.
+- DallasTemperature Sensor: Connect its data pin to pin 11 (D11) on the Arduino board.
+- OLED Display: Connect SDA pin to A4 (SDA), SCL pin to A5 (SCL), and RST pin to pin 4 (D4) on the Arduino board.
+
+ 
+
+Library Dependencies:
+- OneWire: Library for communicating with OneWire devices (DS18B20 temperature sensor)
+- DallasTemperature: Library for DallasTemperature sensors (DS18B20 temperature sensor)
+- DHT: Library for DHT sensors (DHT22 humidity and temperature sensor)
+- Wire: Library for I2C communication
+- Adafruit_GFX: Graphics library for Adafruit displays
+- Adafruit_SSD1306: Library for controlling OLED displays
+
+ 
+
+**********************************/
+
 #include <OneWire.h>
 #include <DallasTemperature.h>
 #include "DHT.h"
@@ -5,51 +30,46 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// Data wire is connected to GPIO 2 (D2) pin
+// Pin Definitions
 #define ONE_WIRE_BUS 11
 #define DHTPIN 12     // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22   // DHT 22  (AM2302), AM2321
 #define OLED_RESET 4
 
-Adafruit_SSD1306 display(OLED_RESET);
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature sensors(&oneWire);
-DHT dht(DHTPIN, DHTTYPE);
+// Object Declarations
+Adafruit_SSD1306 display(OLED_RESET);   // Object for OLED display
+OneWire oneWire(ONE_WIRE_BUS);          // Object for OneWire communication
+DallasTemperature sensors(&oneWire);    // Object for DallasTemperature sensor
+DHT dht(DHTPIN, DHTTYPE);               // Object for DHT sensor
 
 void setup() {
-  Serial.begin(9600);
-  sensors.begin();
-  dht.begin();
-  // Initialize the OLED display
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
-  display.clearDisplay();
-  // Set text size and color
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
+  Serial.begin(9600);                         // Initialize serial communication
+  sensors.begin();                            // Initialize DallasTemperature sensor
+  dht.begin();                                // Initialize DHT sensor
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3C);  // Initialize the OLED display
+  display.clearDisplay();                     // Clear the display
+  display.setTextSize(1);                     // Set text size
+  display.setTextColor(WHITE);                // Set color
 
 }
 
 void loop() {
-  delay(2000);
-  sensors.requestTemperatures();
-  float temperatureC = sensors.getTempCByIndex(0);
+  delay(2000);                                        // Delay for 2 seconds before next reading
+  sensors.requestTemperatures();                      // Request temperature reading from DallasTemperature sensor
+  float temperatureC = sensors.getTempCByIndex(0);    // Get temperature value from DS18B20
+  float h = dht.readHumidity();                       // Read humidity value from DHT sensor
+  float t = dht.readTemperature();                    // Read temperature value from DHT sensor
 
-  // Reading temperature or humidity takes about 250 milliseconds!
-  // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
-  float h = dht.readHumidity();
-  // Read temperature as Celsius (the default)
-  float t = dht.readTemperature();
-
-  Serial.print(h);
+  // Print readings to serial monitor
+  Serial.print(h, 4);
   Serial.print(F(", "));
-  Serial.print(t);
+  Serial.print(t, 4);
   Serial.print(F(", "));
-  Serial.println(temperatureC);
+  Serial.println(temperatureC, 4);
 
-  // Clear the display
-  display.clearDisplay();
+  display.clearDisplay();       // Clear the display
 
-  // Display measurements
+  // Update the OLED display with readings  
   display.setCursor(0, 0);
   display.println("Humidity: " + String(h) + "%");
   display.setCursor(0, 10);
